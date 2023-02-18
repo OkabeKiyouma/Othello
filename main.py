@@ -4,7 +4,12 @@ from enum import Enum
 turn = -1  # 1 for white
 SIZE = (720, 720)
 
-
+class PList(list):
+    def __getitem__(self, index):
+        if index < 0:
+            raise IndexError
+        else:
+            return list.__getitem__(self, index)
 class DIRECTION(Enum):
     NORTH = 0,
     NORTHEAST = 1,
@@ -257,9 +262,9 @@ def main():
     pygame.display.set_caption('Othello')
     screen.fill((31, 127, 31))
 
-    board = [[]] * 8
+    board = PList([PList([])] * 8)
     for i in range(len(board)):
-        board[i] = [0]*8
+        board[i] = PList([0]*8)
 
     board[3][3] = 1  # 1 for white
     board[4][4] = 1
