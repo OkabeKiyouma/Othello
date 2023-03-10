@@ -6,150 +6,13 @@ import math
 
 SIZE = (720, 720)
 
-class PList(list):
-    def __getitem__(self, index):
-        if index < 0:
-            raise IndexError
-        else:
-            return list.__getitem__(self, index)
-
-class DIRECTION(Enum):
-    NORTH = 0,
-    NORTHEAST = 1,
-    EAST = 2,
-    SOUTHEAST = 3,
-    SOUTH = 4,
-    SOUTHWEST = 5,
-    WEST = 6,
-    NORTHWEST = 7,
-
-def return_direction(coord, to_find, board):
-    (x, y) = (coord[0], coord[1])
-    directions = []
-    try:
-        if board[x-1][y] == to_find:
-            directions.append(DIRECTION.NORTH)
-    except IndexError:
-        pass
-
-    try:
-        if board[x-1][y+1] == to_find:
-            directions.append(DIRECTION.NORTHEAST)
-    except IndexError:
-        pass
-    try:
-        if board[x][y+1] == to_find:
-            directions.append(DIRECTION.EAST)
-    except IndexError:
-        pass
-    try:
-        if board[x+1][y+1] == to_find:
-            directions.append(DIRECTION.SOUTHEAST)
-    except IndexError:
-        pass
-    try:
-        if board[x+1][y] == to_find:
-            directions.append(DIRECTION.SOUTH)
-    except IndexError:
-        pass
-    try:
-        if board[x+1][y-1] == to_find:
-            directions.append(DIRECTION.SOUTHWEST)
-    except IndexError:
-        pass
-    try:
-        if board[x][y-1] == to_find:
-            directions.append(DIRECTION.WEST)
-    except IndexError:
-        pass
-    try:
-        if board[x-1][y-1] == to_find:
-            directions.append(DIRECTION.NORTHWEST)
-    except IndexError:
-        pass
-
-    return directions
-
-def find_in_direction(coord, direction, to_find, board):
-    (x, y) = (coord[0], coord[1])
-    try:
-        if direction == DIRECTION.NORTH:
-            (x, y) = (x-1, y)
-            while board[x][y] == to_find:
-                (x, y) = (x-1, y)
-            if board[x][y] == 0:
-                return False
-            if board[x][y] == to_find*-1:
-                return True
-        if direction == DIRECTION.NORTHEAST:
-            (x, y) = (x-1, y+1)
-            while board[x][y] == to_find:
-                (x, y) = (x-1, y+1)
-            if board[x][y] == 0:
-                return False
-            if board[x][y] == to_find*-1:
-                return True
-        if direction == DIRECTION.EAST:
-            (x, y) = (x, y+1)
-            while board[x][y] == to_find:
-                (x, y) = (x, y+1)
-            if board[x][y] == 0:
-                return False
-            if board[x][y] == to_find*-1:
-                return True
-        if direction == DIRECTION.SOUTHEAST:
-            (x, y) = (x+1, y+1)
-            while board[x][y] == to_find:
-                (x, y) = (x+1, y+1)
-            if board[x][y] == 0:
-                return False
-            if board[x][y] == to_find*-1:
-                return True
-        if direction == DIRECTION.SOUTH:
-            (x, y) = (x+1, y)
-            while board[x][y] == to_find:
-                (x, y) = (x+1, y)
-            if board[x][y] == 0:
-                return False
-            if board[x][y] == to_find*-1:
-                return True
-        if direction == DIRECTION.SOUTHWEST:
-            (x, y) = (x+1, y-1)
-            while board[x][y] == to_find:
-                (x, y) = (x+1, y-1)
-            if board[x][y] == 0:
-                return False
-            if board[x][y] == to_find*-1:
-                return True
-        if direction == DIRECTION.WEST:
-            (x, y) = (x, y-1)
-            while board[x][y] == to_find:
-                (x, y) = (x, y-1)
-            if board[x][y] == 0:
-                return False
-            if board[x][y] == to_find*-1:
-                return True
-        if direction == DIRECTION.NORTHWEST:
-            (x, y) = (x-1, y-1)
-            while board[x][y] == to_find:
-                (x, y) = (x-1, y-1)
-            if board[x][y] == 0:
-                return False
-            if board[x][y] == to_find*-1:
-                return True
-    except IndexError:
-        return False
-
-    return False
-
-
 
 class Game:
     def __init__(self):
         self.turn = -1
-        self.board = PList([PList([])] * 8)
+        self.board = list([list([])] * 8)
         for i in range(len(self.board)):
-            self.board[i] = PList([0]*8)
+            self.board[i] = list([0]*8)
 
         self.board[3][3] = 1  # 1 for white
         self.board[4][4] = 1
@@ -158,81 +21,53 @@ class Game:
 
 
     def calculate_moves(self):
-        board = self.board
-
-        to_find = self.turn * -1
         moves = []
-        for x, item in enumerate(board):
-            for y, value in enumerate(item):
-                if value == 0:
-                    directions = return_direction((x, y), to_find, board)
-                    for d in directions:
-                        if find_in_direction((x, y), d, to_find, board):
-                            moves.append((x, y))
+        for i in range(8):
+            for j in range(8):
+                if self.board[i][j] == 0:
+                    if self.is_legal_move(i, j):
+                        moves.append((i, j))
         return moves
+
+    def is_legal_move(self, x, y):
+        for dx, dy in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
+            if self.is_legal_direction(x, y, dx, dy):
+                return True
+        return False
+
+    def is_legal_direction(self, x, y, dx, dy):
+        # check if a move in a certain direction is legal
+        opponent = -self.turn
+        i, j = x + dx, y + dy
+        if not (0 <= i < 8 and 0 <= j < 8) or self.board[i][j] != opponent:
+            return False
+        i, j = i + dx, j + dy
+        while 0 <= i < 8 and 0 <= j < 8:
+            if self.board[i][j] == self.turn:
+                return True
+            elif self.board[i][j] == 0:
+                return False
+            i, j = i + dx, j + dy
+        return False
+
+    def flip_coins(self, pos):
+        x,y = pos
+        # flip opponent pieces when a move is made
+        for dx, dy in ((-1, -1),(-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
+            if self.is_legal_direction(x, y, dx, dy):
+                i, j = x + dx, y + dy
+                while self.board[i][j] == -self.turn:
+                    self.board[i][j] = self.turn
+                    i, j = i + dx, j + dy
 
     def make_move(self, pos):    #if game ends after move returns -1
         turn = self.turn
-        def flip_in_direction(board, pos, direction):
-            (x, y) = (pos[0], pos[1])
-            try:
-                if direction == DIRECTION.NORTH:
-                    (x, y) = (x-1, y)
-                    while board[x][y] == turn*-1:
-                        board[x][y] = turn
-                        (x, y) = (x-1, y)
-                if direction == DIRECTION.NORTHEAST:
-                    (x, y) = (x-1, y+1)
-                    while board[x][y] == turn*-1:
-                        board[x][y] = turn
-                        (x, y) = (x-1, y+1)
-                if direction == DIRECTION.EAST:
-                    (x, y) = (x, y+1)
-                    while board[x][y] == turn*-1:
-                        board[x][y] = turn
-                        (x, y) = (x, y+1)
-                if direction == DIRECTION.SOUTHEAST:
-                    (x, y) = (x+1, y+1)
-                    while board[x][y] == turn*-1:
-                        board[x][y] = turn
-                        (x, y) = (x+1, y+1)
-                if direction == DIRECTION.SOUTH:
-                    (x, y) = (x+1, y)
-                    while board[x][y] == turn*-1:
-                        board[x][y] = turn
-                        (x, y) = (x+1, y)
-                if direction == DIRECTION.SOUTHWEST:
-                    (x, y) = (x+1, y-1)
-                    while board[x][y] == turn*-1:
-                        board[x][y] = turn
-                        (x, y) = (x+1, y-1)
-                if direction == DIRECTION.WEST:
-                    (x, y) = (x, y-1)
-                    while board[x][y] == turn*-1:
-                        board[x][y] = turn
-                        (x, y) = (x, y-1)
-                if direction == DIRECTION.NORTHWEST:
-                    (x, y) = (x-1, y-1)
-                    while board[x][y] == turn*-1:
-                        board[x][y] = turn
-                        (x, y) = (x-1, y-1)
-            except IndexError:
-                return False
-
-            return False
-
-        def flip_coins(board, pos):
-            to_find = turn*-1
-            x, y = pos
-            directions = return_direction((x, y), to_find, board)
-            for d in directions:
-                if find_in_direction((x, y), d, to_find, board):
-                    flip_in_direction(board, pos, d)
+       
 
         x, y = pos    #make_move returns 0 if game ends after making move
         moves = self.calculate_moves()
         if (x, y) in moves:
-            flip_coins(self.board, (x, y))
+            self.flip_coins((x, y))
             self.board[x][y] = self.turn
             self.turn *= -1
 
