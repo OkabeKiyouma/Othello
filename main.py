@@ -217,7 +217,11 @@ bot = MCTSBot(g, 1)
 
 while True:
     if g.finished():
-        print(g.get_winner())
+        winner = g.get_winner()
+        if winner == 1:
+            print("White (AI) Won")
+        if winner == -1:
+            print("Black (YOU) Won")
         break
 
     if g.turn == bot.turn:
