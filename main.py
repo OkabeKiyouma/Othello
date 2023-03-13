@@ -62,12 +62,14 @@ class Game:
                     i, j = i + dx, j + dy
 
     def make_move(self, pos):    #if game ends after move returns -1
+        global current_move
         turn = self.turn
        
 
         x, y = pos    #make_move returns 0 if game ends after making move
         moves = self.calculate_moves()
         if (x, y) in moves:
+            current_move = (x,y)
             self.flip_coins((x, y))
             self.board[x][y] = self.turn
             self.turn *= -1
@@ -145,12 +147,24 @@ class Game:
 
                 pygame.draw.rect(screen,(0,255,255), (y * celldim, x*celldim, celldim, celldim)) 
 
+        def print_score(screen):
+            white_count = 0
+            black_count = 0
+            for l in self.board:
+                for item in l:
+                    if item == 1:
+                        white_count+=1
+                    elif item == -1:
+                        black_count+=1
+            pygame.display.set_caption(f"Othello / White: {white_count} Black: {black_count}")
+
         # board = self.board
         highlight_current_move(screen)
         make_grid_lines(screen)
         render_pieces(screen)
         moves = self.calculate_moves()
         render_possible_moves(screen, moves)
+        print_score(screen)
         pygame.display.flip()
 
     
@@ -235,7 +249,6 @@ while True:
     if g.turn == bot.turn:
         bot.node = Node(g, None)
         move = bot.get_move()
-        current_move = move
         g.make_move(move)
     screen.fill((31, 127, 31))
     
@@ -250,7 +263,6 @@ while True:
 
             x = pygame.mouse.get_pos()
             y, x = x[0] // celldim, x[1] // celldim
-            current_move = (x,y)
             g.make_move((x, y))
 
     g.render(screen)
