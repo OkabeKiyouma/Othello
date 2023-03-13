@@ -5,6 +5,7 @@ from copy import deepcopy
 import math
 
 SIZE = (720, 720)
+current_move = None
 
 
 class Game:
@@ -137,7 +138,15 @@ class Game:
                 pygame.draw.line(screen, (0, 0, 0), (i, 0), (i, sy))
                 pygame.draw.line(screen, (0, 0, 0), (0, i), (sx, i))
 
+        def highlight_current_move(screen):
+            if current_move is not None:
+                celldim = SIZE[0] // 8
+                x,y = current_move
+
+                pygame.draw.rect(screen,(0,255,255), (y * celldim, x*celldim, celldim, celldim)) 
+
         # board = self.board
+        highlight_current_move(screen)
         make_grid_lines(screen)
         render_pieces(screen)
         moves = self.calculate_moves()
@@ -209,7 +218,6 @@ class MCTSBot:
     def get_move(self):
         return self.node.get_best_move()
 
-
 screen = pygame.display.set_mode(SIZE)
 pygame.display.set_caption('Othello')
 g = Game()
@@ -227,6 +235,7 @@ while True:
     if g.turn == bot.turn:
         bot.node = Node(g, None)
         move = bot.get_move()
+        current_move = move
         g.make_move(move)
     screen.fill((31, 127, 31))
     
@@ -241,7 +250,7 @@ while True:
 
             x = pygame.mouse.get_pos()
             y, x = x[0] // celldim, x[1] // celldim
-
+            current_move = (x,y)
             g.make_move((x, y))
 
     g.render(screen)
